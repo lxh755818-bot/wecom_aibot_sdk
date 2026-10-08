@@ -332,7 +332,11 @@ class WebSocketManager:
         max_attempts = self._options.max_reconnect_attempts
 
         while not self._stop_event.is_set():
-            if max_attempts > 0 and self._reconnect_attempts >= max_attempts:
+            # Guard: stop reconnecting once max_reconnect_attempts is reached.
+            # `-1` means unlimited (skips this check entirely);
+            # `0` means "do not reconnect at all" — without the >= guard,
+            # the heartbeat-induced reconnect path bypasses the user's intent.
+            if max_attempts >= 0 and self._reconnect_attempts >= max_attempts:
                 self._logger.error("Max reconnect attempts reached")
                 break
 
